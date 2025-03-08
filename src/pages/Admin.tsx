@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatData } from '@/hooks/useChatData';
-import { ArrowLeft, Plus, Trash2, Edit, Save, X, MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit, Upload, ImageIcon, Loader2, FileUp, FileDown } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Save, X, MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit, Upload, ImageIcon, Loader2 } from 'lucide-react';
 import ChatCard from '@/components/ChatCard';
 import { UnsavedChatItem } from '@/types';
 import { motion } from 'framer-motion';
 import { scaleIn } from '@/utils/animations';
 import { toast } from '@/components/ui/use-toast';
-import { loadConfigFromFile, saveConfigToFile } from '@/utils/fileStorageAdapter';
 
 import {
   Tabs,
@@ -71,14 +70,14 @@ const Admin = () => {
     updateCategory,
     addChat,
     deleteChat,
-    loading,
-    refreshConfig,
-    setConfig
+    loading
   } = useChatData();
 
+  // Fix flickering issue with this state
   const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
+    // Set loaded state after initial render to prevent flickering
     if (!loading) {
       setIsLoaded(true);
     }
@@ -93,6 +92,7 @@ const Admin = () => {
     category: undefined
   });
 
+  // Custom icon upload state
   const [customIcon, setCustomIcon] = useState<string | null>(null);
   const [useCustomIcon, setUseCustomIcon] = useState(false);
 
@@ -100,31 +100,20 @@ const Admin = () => {
   const [categoryName, setCategoryName] = useState('');
   const [newCategory, setNewCategory] = useState('');
 
-  const handleLoadConfigFile = async () => {
-    try {
-      const loadedConfig = await loadConfigFromFile();
-      setConfig(loadedConfig);
-      toast({
-        title: "配置已加载",
-        description: "成功从文件加载配置"
-      });
-    } catch (error) {
-      console.error("Error loading config file:", error);
-      toast({
-        title: "加载失败",
-        description: "无法加载配置文件",
-        variant: "destructive"
-      });
-    }
-  };
+  // If config is loading, show a loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground animate-pulse">加载配置中...</p>
+      </div>
+    );
+  }
 
-  const handleSaveConfigFile = async () => {
-    try {
-      await saveConfigToFile(config);
-    } catch (error) {
-      console.error("Error saving config file:", error);
-    }
-  };
+  // Don't render until loaded to prevent flickering
+  if (!isLoaded) {
+    return null;
+  }
 
   const handleSubmitChat = () => {
     if (!newChatData.name || !newChatData.url) {
@@ -136,6 +125,7 @@ const Admin = () => {
       return;
     }
 
+    // Use custom icon if uploaded, otherwise use selected icon
     const chatToAdd = {
       ...newChatData,
       icon: useCustomIcon && customIcon ? customIcon : newChatData.icon
@@ -143,6 +133,7 @@ const Admin = () => {
 
     addChat(chatToAdd);
     
+    // Reset form
     setNewChatData({
       name: '',
       description: '',
@@ -177,6 +168,7 @@ const Admin = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     
+    // Check if file is an image
     if (!file.type.startsWith('image/')) {
       toast({
         title: "错误",
@@ -186,6 +178,7 @@ const Admin = () => {
       return;
     }
     
+    // Convert to base64
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -211,27 +204,6 @@ const Admin = () => {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-3xl font-medium tracking-tight">管理控制台</h1>
-        
-        <div className="ml-auto flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={handleLoadConfigFile}
-          >
-            <FileUp className="w-4 h-4" />
-            导入配置
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={handleSaveConfigFile}
-          >
-            <FileDown className="w-4 h-4" />
-            导出配置
-          </Button>
-        </div>
       </motion.header>
 
       <motion.main 
@@ -502,7 +474,7 @@ const Admin = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>确定要删除分类吗？</AlertDialogTitle>
                               <AlertDialogDescription>
-                                删除后，使用此分类的聊天项将变为无分类状态。此操作不可撤销。
+                                删除后，使用此分类的聊天项将变为无���类状态。此操作不可撤销。
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

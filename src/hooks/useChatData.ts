@@ -15,20 +15,20 @@ export const useChatData = () => {
   const [showFavorites, setShowFavorites] = useState<boolean>(false);
 
   // Load data from file
-  const refreshConfig = async () => {
-    try {
-      setLoading(true);
-      const loadedConfig = await loadConfigFromFile();
-      setConfig(loadedConfig);
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to load chat configuration from file');
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    refreshConfig();
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const loadedConfig = await loadConfigFromFile();
+        setConfig(loadedConfig);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load chat configuration from file');
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   // Save config to file whenever it changes
@@ -36,8 +36,7 @@ export const useChatData = () => {
     const saveData = async () => {
       if (!loading) {
         try {
-          // We'll handle manual saving through the UI instead of automatic saving
-          // await saveConfigToFile(config);
+          await saveConfigToFile(config);
         } catch (err) {
           console.error('Error saving config:', err);
           toast({
@@ -238,7 +237,6 @@ export const useChatData = () => {
 
   return {
     config,
-    setConfig,
     filteredChats,
     loading,
     error,
@@ -255,7 +253,6 @@ export const useChatData = () => {
     deleteChat,
     addCategory,
     deleteCategory,
-    updateCategory,
-    refreshConfig
+    updateCategory
   };
 };
