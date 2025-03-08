@@ -100,13 +100,16 @@ export const useChatData = () => {
 
   // Add a new chat
   const addChat = (chatData: UnsavedChatItem) => {
+    // Handle the "none" value from the category dropdown
+    const categoryValue = chatData.category === "none" ? undefined : chatData.category;
+    
     const newChat: ChatItem = {
       id: chatData.id || Date.now().toString(),
       name: chatData.name,
       description: chatData.description,
       url: chatData.url,
       icon: chatData.icon,
-      category: chatData.category,
+      category: categoryValue,
       favorite: chatData.favorite || false
     };
 

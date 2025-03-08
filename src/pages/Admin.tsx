@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatData } from '@/hooks/useChatData';
@@ -238,7 +237,7 @@ const Admin = () => {
                             <SelectValue placeholder="选择分类" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">无分类</SelectItem>
+                            <SelectItem value="none">无分类</SelectItem>
                             {categories.map((category) => (
                               <SelectItem key={category} value={category}>
                                 {category}
