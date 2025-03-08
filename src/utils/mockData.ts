@@ -1,86 +1,88 @@
 
+import { 
+  MessageSquare, Code, Sparkles, LayoutGrid, 
+  BookOpen, Bot, BrainCircuit 
+} from 'lucide-react';
 import { ChatConfig } from '@/types';
-import { MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit } from 'lucide-react';
 
+// Helper function to get icon component by name
+export const getIconComponent = (iconName: string) => {
+  // Don't try to return a component for base64 images
+  if (iconName.startsWith('data:')) {
+    return null;
+  }
+  
+  const iconMap: Record<string, any> = {
+    'MessageSquare': MessageSquare,
+    'Code': Code,
+    'Sparkles': Sparkles,
+    'LayoutGrid': LayoutGrid,
+    'BookOpen': BookOpen,
+    'Bot': Bot,
+    'BrainCircuit': BrainCircuit,
+  };
+  
+  return iconMap[iconName] || MessageSquare;
+};
+
+// Default configuration for new installations
 export const defaultConfig: ChatConfig = {
-  title: "我的 Dify Chat 集合",
+  title: "AI Chat 集合",
   theme: "light",
   chats: [
     {
       id: "1",
       name: "通用助手",
-      description: "回答各类常见问题，提供全面的信息和建议",
-      url: "http://127.0.0.1/chat/beJhGvD2iF4ABI6C",
+      description: "回答各类常见问题，提供全方位的知识支持。",
+      url: "https://example.com/chat/general",
       icon: "MessageSquare",
-      category: "general",
       favorite: true,
-      lastVisited: "2023-11-01T10:30:00Z"
+      lastVisited: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutes ago
     },
     {
       id: "2",
       name: "代码助手",
-      description: "专注编程问题解答，支持多种语言和框架",
-      url: "http://127.0.0.1/chat/dj38Hv2Sif94BsC",
+      description: "解答编程问题，帮助调试代码和学习编程概念。",
+      url: "https://example.com/chat/code",
       icon: "Code",
-      category: "development",
-      favorite: true
+      category: "开发工具",
+      lastVisited: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString() // 5 hours ago
     },
     {
       id: "3",
       name: "创意写作",
-      description: "帮助进行创意写作，灵感生成和内容创作",
-      url: "http://127.0.0.1/chat/wfJ56DseRt9iPmK",
+      description: "提供创意写作建议，帮助撰写文章、故事和内容。",
+      url: "https://example.com/chat/creative",
       icon: "Sparkles",
-      category: "creative"
+      category: "内容创作",
+      favorite: true
     },
     {
       id: "4",
       name: "数据分析",
-      description: "协助处理数据分析任务，提供数据解读",
-      url: "http://127.0.0.1/chat/gK29Jdo58Fhqw3L",
+      description: "帮助分析和理解数据，提供数据可视化建议。",
+      url: "https://example.com/chat/data",
       icon: "LayoutGrid",
-      category: "data",
-      lastVisited: "2023-11-05T14:25:00Z"
+      category: "数据工具",
+      lastVisited: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString() // 2 days ago
     },
     {
       id: "5",
-      name: "学习导师",
-      description: "辅助学习各类学科知识，解答学术问题",
-      url: "http://127.0.0.1/chat/pL78Ksd03JfTw4B",
+      name: "学习助手",
+      description: "辅助学习各类知识，解答学术问题和概念。",
+      url: "https://example.com/chat/learning",
       icon: "BookOpen",
-      category: "education"
+      category: "教育"
     },
     {
       id: "6",
-      name: "对话机器人",
-      description: "模拟自然对话，提供轻松交流体验",
-      url: "http://127.0.0.1/chat/mQ95Rwd72NgHp6S",
-      icon: "Bot",
-      category: "general",
-      lastVisited: "2023-11-08T09:15:00Z"
-    },
-    {
-      id: "7",
-      name: "AI 研究助手",
-      description: "探索人工智能研究前沿，分析最新进展",
-      url: "http://127.0.0.1/chat/xZ21Asd90KjLp3R",
+      name: "AI 顾问",
+      description: "探讨人工智能技术和发展，解答AI相关问题。",
+      url: "https://example.com/chat/ai",
       icon: "BrainCircuit",
-      category: "research",
-      favorite: true
+      category: "技术",
+      lastVisited: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString() // 5 days ago
     }
-  ]
-};
-
-export const getIconComponent = (iconName: string) => {
-  const icons = {
-    MessageSquare,
-    Code,
-    Sparkles,
-    LayoutGrid,
-    BookOpen,
-    Bot,
-    BrainCircuit
-  };
-  
-  return icons[iconName as keyof typeof icons] || MessageSquare;
+  ],
+  categories: ["开发工具", "内容创作", "数据工具", "教育", "技术"]
 };

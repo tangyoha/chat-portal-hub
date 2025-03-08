@@ -44,10 +44,18 @@ const formatDate = (dateString?: string) => {
   }
 };
 
+// Helper to determine if a string is a base64 image
+const isBase64Image = (str: string) => {
+  return str.startsWith('data:image/');
+};
+
 const ChatCard = ({ chat, index, onFavoriteToggle, onVisit, onDelete, isAdmin = false }: ChatCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const IconComponent = chat.icon ? getIconComponent(chat.icon) : null;
+  
+  // Handle either built-in icon or custom uploaded icon
+  const IconComponent = chat.icon && !isBase64Image(chat.icon) ? getIconComponent(chat.icon) : null;
+  const hasCustomIcon = chat.icon && isBase64Image(chat.icon);
   
   const handleVisit = () => {
     onVisit(chat.id);
@@ -104,7 +112,15 @@ const ChatCard = ({ chat, index, onFavoriteToggle, onVisit, onDelete, isAdmin = 
           
           <div className="flex flex-col h-full">
             <div className="mb-4">
-              {IconComponent && (
+              {hasCustomIcon ? (
+                <div className="w-12 h-12 rounded-full glass flex items-center justify-center mb-4 overflow-hidden">
+                  <img 
+                    src={chat.icon} 
+                    alt={chat.name} 
+                    className="w-6 h-6 object-contain"
+                  />
+                </div>
+              ) : IconComponent && (
                 <div className="w-12 h-12 rounded-full glass flex items-center justify-center mb-4">
                   <IconComponent className="w-6 h-6 text-primary" />
                 </div>

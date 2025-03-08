@@ -1,7 +1,8 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatData } from '@/hooks/useChatData';
-import { ArrowLeft, Plus, Trash2, Edit, Save, X, MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Save, X, MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit, Upload, ImageIcon } from 'lucide-react';
 import ChatCard from '@/components/ChatCard';
 import { UnsavedChatItem } from '@/types';
 import { motion } from 'framer-motion';
@@ -72,6 +73,14 @@ const Admin = () => {
     deleteChat,
   } = useChatData();
 
+  // Fix flickering issue with this state
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Set loaded state after initial render to prevent flickering
+    setIsLoaded(true);
+  }, []);
+
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatData, setNewChatData] = useState<UnsavedChatItem>({
     name: '',
@@ -80,6 +89,10 @@ const Admin = () => {
     icon: 'MessageSquare',
     category: undefined
   });
+
+  // Custom icon upload state
+  const [customIcon, setCustomIcon] = useState<string | null>(null);
+  const [useCustomIcon, setUseCustomIcon] = useState(false);
 
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
@@ -95,7 +108,15 @@ const Admin = () => {
       return;
     }
 
-    addChat(newChatData);
+    // Use custom icon if uploaded, otherwise use selected icon
+    const chatToAdd = {
+      ...newChatData,
+      icon: useCustomIcon && customIcon ? customIcon : newChatData.icon
+    };
+
+    addChat(chatToAdd);
+    
+    // Reset form
     setNewChatData({
       name: '',
       description: '',
@@ -103,6 +124,8 @@ const Admin = () => {
       icon: 'MessageSquare',
       category: undefined
     });
+    setCustomIcon(null);
+    setUseCustomIcon(false);
     setNewChatOpen(false);
   };
 
@@ -123,6 +146,35 @@ const Admin = () => {
     setEditingCategory(category);
     setCategoryName(category);
   };
+
+  const handleIconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "错误",
+        description: "请上传图片文件",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setCustomIcon(result);
+      setUseCustomIcon(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Don't render until loaded to prevent flickering
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen pb-16">
@@ -204,48 +256,105 @@ const Admin = () => {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="icon">图标</Label>
-                        <Select
-                          value={newChatData.icon}
-                          onValueChange={(value) => setNewChatData({ ...newChatData, icon: value })}
-                        >
-                          <SelectTrigger id="icon">
-                            <SelectValue placeholder="选择图标" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {iconOptions.map((icon) => (
-                              <SelectItem key={icon.value} value={icon.value}>
-                                <div className="flex items-center">
-                                  <icon.icon className="w-4 h-4 mr-2" />
-                                  {icon.label}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    <div className="grid gap-2">
+                      <Label>图标</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="flex items-center space-x-2 mb-3">
+                            <input
+                              type="radio"
+                              id="builtInIcon"
+                              checked={!useCustomIcon}
+                              onChange={() => setUseCustomIcon(false)}
+                              className="rounded text-primary"
+                            />
+                            <Label htmlFor="builtInIcon" className="cursor-pointer">
+                              内置图标
+                            </Label>
+                          </div>
+                          <Select
+                            value={newChatData.icon}
+                            onValueChange={(value) => setNewChatData({ ...newChatData, icon: value })}
+                            disabled={useCustomIcon}
+                          >
+                            <SelectTrigger id="icon">
+                              <SelectValue placeholder="选择图标" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {iconOptions.map((icon) => (
+                                <SelectItem key={icon.value} value={icon.value}>
+                                  <div className="flex items-center">
+                                    <icon.icon className="w-4 h-4 mr-2" />
+                                    {icon.label}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center space-x-2 mb-3">
+                            <input
+                              type="radio"
+                              id="customIcon"
+                              checked={useCustomIcon}
+                              onChange={() => setUseCustomIcon(true)}
+                              className="rounded text-primary"
+                            />
+                            <Label htmlFor="customIcon" className="cursor-pointer">
+                              自定义图标
+                            </Label>
+                          </div>
+                          
+                          <div className="flex flex-col gap-2">
+                            <div className="relative rounded border border-input text-sm p-4 h-24 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-muted/50 transition-colors">
+                              <input
+                                type="file"
+                                id="custom-icon"
+                                accept="image/*"
+                                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                                onChange={handleIconUpload}
+                                disabled={!useCustomIcon}
+                              />
+                              {customIcon ? (
+                                <img 
+                                  src={customIcon} 
+                                  alt="自定义图标" 
+                                  className="h-14 w-14 object-contain"
+                                />
+                              ) : (
+                                <>
+                                  <Upload className="w-5 h-5 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">
+                                    点击上传图标
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      
-                      <div className="grid gap-2">
-                        <Label htmlFor="category">分类</Label>
-                        <Select
-                          value={newChatData.category}
-                          onValueChange={(value) => setNewChatData({ ...newChatData, category: value })}
-                        >
-                          <SelectTrigger id="category">
-                            <SelectValue placeholder="选择分类" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">无分类</SelectItem>
-                            {categories.map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    </div>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="category">分类</Label>
+                      <Select
+                        value={newChatData.category}
+                        onValueChange={(value) => setNewChatData({ ...newChatData, category: value })}
+                      >
+                        <SelectTrigger id="category">
+                          <SelectValue placeholder="选择分类" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">无分类</SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
