@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ChatConfig, ChatItem, UnsavedChatItem } from '@/types';
 import { defaultConfig } from '@/utils/mockData';
 import { toast } from '@/components/ui/use-toast';
+import { loadConfigFromFile, saveConfigToFile } from '@/utils/fileStorageAdapter';
 
 export const useChatData = () => {
   const [config, setConfig] = useState<ChatConfig>(defaultConfig);
@@ -13,24 +14,16 @@ export const useChatData = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showFavorites, setShowFavorites] = useState<boolean>(false);
 
-  // Load data from a local JSON file or API
+  // Load data from file
   useEffect(() => {
     const loadData = async () => {
       try {
-        // In a real implementation, this would fetch from a file or API
-        // For now, we'll use the mock data after a small delay to simulate loading
-        setTimeout(() => {
-          // Check if we have saved data in localStorage
-          const savedConfig = localStorage.getItem('chatConfig');
-          if (savedConfig) {
-            setConfig(JSON.parse(savedConfig));
-          } else {
-            setConfig(defaultConfig);
-          }
-          setLoading(false);
-        }, 800);
+        setLoading(true);
+        const loadedConfig = await loadConfigFromFile();
+        setConfig(loadedConfig);
+        setLoading(false);
       } catch (err) {
-        setError('Failed to load chat configuration');
+        setError('Failed to load chat configuration from file');
         setLoading(false);
       }
     };
@@ -38,11 +31,24 @@ export const useChatData = () => {
     loadData();
   }, []);
 
-  // Save config to localStorage whenever it changes
+  // Save config to file whenever it changes
   useEffect(() => {
-    if (!loading) {
-      localStorage.setItem('chatConfig', JSON.stringify(config));
-    }
+    const saveData = async () => {
+      if (!loading) {
+        try {
+          await saveConfigToFile(config);
+        } catch (err) {
+          console.error('Error saving config:', err);
+          toast({
+            title: "保存失败",
+            description: "无法保存配置到文件",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    saveData();
   }, [config, loading]);
 
   // Apply filters whenever dependencies change

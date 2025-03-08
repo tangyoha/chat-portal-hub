@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatData } from '@/hooks/useChatData';
-import { ArrowLeft, Plus, Trash2, Edit, Save, X, MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit, Upload, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Save, X, MessageSquare, Code, Sparkles, LayoutGrid, BookOpen, Bot, BrainCircuit, Upload, ImageIcon, Loader2 } from 'lucide-react';
 import ChatCard from '@/components/ChatCard';
 import { UnsavedChatItem } from '@/types';
 import { motion } from 'framer-motion';
@@ -71,6 +70,7 @@ const Admin = () => {
     updateCategory,
     addChat,
     deleteChat,
+    loading
   } = useChatData();
 
   // Fix flickering issue with this state
@@ -78,8 +78,10 @@ const Admin = () => {
   
   useEffect(() => {
     // Set loaded state after initial render to prevent flickering
-    setIsLoaded(true);
-  }, []);
+    if (!loading) {
+      setIsLoaded(true);
+    }
+  }, [loading]);
 
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatData, setNewChatData] = useState<UnsavedChatItem>({
@@ -97,6 +99,21 @@ const Admin = () => {
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [newCategory, setNewCategory] = useState('');
+
+  // If config is loading, show a loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground animate-pulse">加载配置中...</p>
+      </div>
+    );
+  }
+
+  // Don't render until loaded to prevent flickering
+  if (!isLoaded) {
+    return null;
+  }
 
   const handleSubmitChat = () => {
     if (!newChatData.name || !newChatData.url) {
@@ -170,11 +187,6 @@ const Admin = () => {
     };
     reader.readAsDataURL(file);
   };
-
-  // Don't render until loaded to prevent flickering
-  if (!isLoaded) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen pb-16">
@@ -462,7 +474,7 @@ const Admin = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>确定要删除分类吗？</AlertDialogTitle>
                               <AlertDialogDescription>
-                                删除后，使用此分类的聊天项将变为无分类状态。此操作不可撤销。
+                                删除后，使用此分类的聊天项将变为无���类状态。此操作不可撤销。
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
