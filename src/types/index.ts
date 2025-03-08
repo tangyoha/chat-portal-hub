@@ -14,4 +14,9 @@ export interface ChatConfig {
   title: string;
   theme: 'light' | 'dark';
   chats: ChatItem[];
+  categories?: string[];
+}
+
+export interface UnsavedChatItem extends Omit<ChatItem, 'id'> {
+  id?: string;
 }

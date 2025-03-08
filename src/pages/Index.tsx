@@ -1,12 +1,13 @@
 
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import ChatCard from '@/components/ChatCard';
 import EmptyState from '@/components/EmptyState';
 import { useChatData } from '@/hooks/useChatData';
 import { useTheme } from '@/hooks/useTheme';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Settings } from 'lucide-react';
 
 const Index = () => {
   const {
@@ -90,6 +91,16 @@ const Index = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
+        <div className="flex justify-end mb-6">
+          <Link 
+            to="/admin" 
+            className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/60 transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            <span>管理面板</span>
+          </Link>
+        </div>
+
         {filteredChats.length === 0 ? (
           <EmptyState 
             query={searchQuery}
