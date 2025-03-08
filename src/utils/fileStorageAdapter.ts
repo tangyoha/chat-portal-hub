@@ -1,51 +1,68 @@
-
 import { ChatConfig } from '@/types';
 import { defaultConfig } from './mockData';
 
-// Function to load config from a JSON file
+// API endpoint for the chat configuration
+const API_ENDPOINT = '/api/config';
+
+// Function to load config from the API
 export const loadConfigFromFile = async (): Promise<ChatConfig> => {
   try {
-    // In a real implementation, this would read from an actual file
-    // For browser-based apps, we would use an API endpoint to read the file
-    // For now, we'll simulate this with localStorage but wrap in a Promise
-    // to mimic async file operations
-    return new Promise((resolve) => {
+    // Fetch the configuration from the API
+    const response = await fetch(API_ENDPOINT);
+    
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+    
+    const config = await response.json();
+    return config;
+  } catch (error) {
+    console.error('Error loading config from API:', error);
+    
+    // If API is not available, fall back to localStorage
+    try {
       const savedConfig = localStorage.getItem('chatConfig');
       if (savedConfig) {
-        resolve(JSON.parse(savedConfig));
+        return JSON.parse(savedConfig);
       } else {
         // If no config exists, use default and save it
         localStorage.setItem('chatConfig', JSON.stringify(defaultConfig));
-        resolve(defaultConfig);
+        return defaultConfig;
       }
-      
-      // Simulate network latency for file operations
-      // setTimeout(() => {
-      //   resolve(config);
-      // }, 500);
-    });
-  } catch (error) {
-    console.error('Error loading config from file:', error);
-    throw new Error('Failed to load chat configuration from file');
+    } catch (localError) {
+      console.error('Error with localStorage fallback:', localError);
+      return defaultConfig;
+    }
   }
 };
 
-// Function to save config to a JSON file
+// Function to save config to the API
 export const saveConfigToFile = async (config: ChatConfig): Promise<void> => {
   try {
-    // In a real implementation, this would write to an actual file
-    // For browser-based apps, we would use an API endpoint to write to the file
-    // For now, we'll simulate this with localStorage but wrap in a Promise
-    return new Promise((resolve) => {
-      localStorage.setItem('chatConfig', JSON.stringify(config));
-      
-      // Simulate network latency for file operations
-      setTimeout(() => {
-        resolve();
-      }, 300);
+    // Save the configuration to the API
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(config),
     });
+    
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+    
+    // Also save to localStorage as a fallback
+    localStorage.setItem('chatConfig', JSON.stringify(config));
   } catch (error) {
-    console.error('Error saving config to file:', error);
-    throw new Error('Failed to save chat configuration to file');
+    console.error('Error saving config to API:', error);
+    
+    // If API is not available, fall back to localStorage
+    try {
+      localStorage.setItem('chatConfig', JSON.stringify(config));
+    } catch (localError) {
+      console.error('Error with localStorage fallback:', localError);
+      throw new Error('Failed to save chat configuration');
+    }
   }
 };
